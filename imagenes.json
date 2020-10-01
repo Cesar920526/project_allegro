@@ -1,0 +1,44 @@
+{
+	"imagenes":{
+
+			"Facil":[
+				{
+					"texto": "aji", "url": "img/aji.bmp"
+				},{
+					"texto": "beso", "url": "img/beso.bmp"
+				},{
+					"texto": "caja", "url": "img/caja.bmp"
+				},{
+					"texto": "mano", "url": "img/mano.bmp"
+				},{
+					"texto": "oso", "url": "img/oso.bmp"
+				}
+			],
+			"Normal":[
+				{
+					"texto": "cantar", "url": "img/cantar.bmp"
+				},{
+					"texto": "espuma", "url": "img/espuma.bmp"
+				},{
+					"texto": "galleta", "url": "img/galleta.bmp"
+				},{
+					"texto": "morado", "url": "img/morado.bmp"
+				},{
+					"texto": "sonrisa", "url": "img/sonrisa.bmp"
+				}
+			],
+			"Dificil":[
+				{
+					"texto": "descifrar", "url": "img/descifrar.bmp"
+				},{
+					"texto": "esmeralda", "url": "img/esmeralda.bmp"
+				},{
+					"texto": "mermelada", "url": "img/mermelada.bmp"
+				},{
+					"texto": "resistente", "url": "img/resistente.bmp"
+				},{
+					"texto": "transporte", "url": "img/transporte.bmp"
+				}
+			]
+	}
+}
