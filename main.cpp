@@ -217,10 +217,10 @@ void jugar(int basepal){
     SAMPLE *perdi;
 
     stop_sample(inicial); // para parar cancion del menu inicial
-    BITMAP *abecedario[26] = {}; //arreglo de bitmap donde estan contenidas las letras del abecedario
     SAMPLE *facil = load_wav("music/Dont.wav");
     SAMPLE *medio = load_wav("music/Medium.wav");
     SAMPLE *dificil = load_wav("music/Hard.wav");
+    BITMAP *abecedario[26] = {}; //arreglo de bitmap donde estan contenidas las letras del abecedario
 
     for(int i = 0 ; i < 26 ; i++){ //se cargan las imagenes del abecedario
 
@@ -380,7 +380,7 @@ void jugar(int basepal){
                 draw_sprite(buffer, perdiste, 0, 0);
 
                 for(int i = 0; i < temporal.size(); i++){
-                    masked_blit(abecedario[tolower(temporal[i]) - 97], buffer, 0, 0, 25+i*60, 333, 60, 60);//carga las x de acuerdo al tamaño de la palabra
+                    masked_blit(abecedario[tolower(temporal[i]) - 97], buffer, 0, 0, 25+i*60, 333, 60, 60);//carga las letras de acuerdo al tamaño de la palabra
                 }
 
                 blit(buffer, screen, 0, 0, 0, 0, 640, 480);
