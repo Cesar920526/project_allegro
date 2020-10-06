@@ -2,17 +2,15 @@
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
-
 #include <string>
 #include <sstream>
-
 #include <fstream>
 #include <nlohmann/json.hpp> // se incluye libreria json
-
 #include "Clases/Imagenes.cpp"
 
 BITMAP *buffer;
 BITMAP *fondo;
+SAMPLE *inicial;
 
 using namespace std;
 using namespace nlohmann; //para poder hacer uso del json
@@ -22,29 +20,37 @@ string str;
 int menu();
 int opciones();
 void jugar(int basepal);
+void creditos();
 
 vector<Imagen> cargarJson(string categoria); //vector para cargar las imagenes alojadas en el json
 
 int main()
 {
+    srand(time(0)); //inicializar random
     int opcionppal, salir, basepal;
 
     allegro_init(); //iniciar libreria alegro
     install_keyboard(); //instalar e iniciar el teclado
     install_mouse(); //instalar e iniciar el mouse
+    install_sound(DIGI_AUTODETECT,MIDI_AUTODETECT,NULL); //instalar el sonido
 
     set_color_depth(32);
     set_gfx_mode(GFX_AUTODETECT_WINDOWED, 640, 480, 0, 0); //tamaño de la consola de allegro
     show_mouse(screen); //mostrar mouse
+    set_volume(250,200); //asignar volumen
 
     set_window_title("A PENSAR");
 
     buffer = create_bitmap(640, 480); //cargar el buffer *resevar un espacio de la memoria en el sistema
 
+    inicial = load_wav("music/Another.wav");
     fondo = load_bitmap("img/Fondo.bmp", NULL);
 
 //menú con las opciones del juego
     while(salir != 3){
+
+        stop_sample(inicial);
+        play_sample(inicial,200,150,1000,1);
 
         opcionppal = menu();
 
@@ -55,17 +61,22 @@ int main()
             break;
 
             case 2:
+                creditos();
+            break;
 
+            case 3:
+                salir = 3;
             break;
         }
+
+        draw_sprite(buffer,fondo,0,0); //dibuja el fondo
+        masked_blit(fondo,buffer, 0,0,0,0,716,506); //carga el fondo
+        blit(buffer,screen, 0,0,0,0,640,480); //carga el buffer
+        clear(buffer);
+
     }
 
-    draw_sprite(buffer,fondo,0,0); //dibuja el fondo
-    masked_blit(fondo,buffer, 0,0,0,0,716,506); //carga el fondo
-    blit(buffer,screen, 0,0,0,0,640,480); //carga el buffer
-    clear(buffer);
-
-    readkey();
+    destroy_bitmap(buffer);
 
     return 0;
 }
@@ -106,7 +117,7 @@ int menu(){ //esta funcion se encarga de mostrar las diferentes imagenes a paso 
             i = 1;
         }
 
-        if(mouse_x > 30 && mouse_x < 490 && mouse_y > 250 && mouse_y < 320){ // se muestra opción del menu2 (creditos)
+        if(mouse_x > 30 && mouse_x < 415 && mouse_y > 280 && mouse_y < 340){ // se muestra opción del menu2 (creditos)
             draw_sprite(buffer, menu2, 0, 0);
 
             if(mouse_b & 1){
@@ -117,7 +128,7 @@ int menu(){ //esta funcion se encarga de mostrar las diferentes imagenes a paso 
             i = 2;
         }
 
-        if(mouse_x > 30 && mouse_x < 255 && mouse_y > 330 && mouse_y < 410){// se muestra opción del menu3 (salir)
+        if(mouse_x > 30 && mouse_x < 275 && mouse_y > 370 && mouse_y < 440){// se muestra opción del menu3 (salir)
             draw_sprite(buffer,menu3,0,0);
 
             if(mouse_b & 1){
@@ -201,9 +212,15 @@ int opciones(){ //esta funcion se encarga de mostrar las diferentes imagenes a p
 
 void jugar(int basepal){
 
-    char respuesta;
+    char respuesta = 's';
+    SAMPLE *ganar;
+    SAMPLE *perdi;
 
+    stop_sample(inicial); // para parar cancion del menu inicial
     BITMAP *abecedario[26] = {}; //arreglo de bitmap donde estan contenidas las letras del abecedario
+    SAMPLE *facil = load_wav("music/Dont.wav");
+    SAMPLE *medio = load_wav("music/Medium.wav");
+    SAMPLE *dificil = load_wav("music/Hard.wav");
 
     for(int i = 0 ; i < 26 ; i++){ //se cargan las imagenes del abecedario
 
@@ -244,28 +261,60 @@ void jugar(int basepal){
     digitar_letra = load_bitmap("img/Digitar_Letra.bmp", NULL);
     intentos = load_bitmap("img/Intentos.bmp", NULL);
 
-    while(respuesta != 'n'){
+    vector<int> opciones =  vector<int>{};
+
+    while(respuesta == 's'){
 
         int j = 0, vidas = 10, t = 0;
         string temporal, palgen;
 
+        bool encontar;
 
-        srand(time(0)); //inicializar random
-        j = 0 + rand() % 5;
+        do{ //Funcion que sirve por si el usuario desea continuar en el nivel me dé las imagenes que no se han mostrado.
+            encontar = false;
+            j = 0 + rand() % 5;
+
+            int tamano = opciones.size();
+
+            if(tamano == 5){
+                opciones.clear();
+            }
+
+            tamano = opciones.size();
+
+            for(int i = 0 ; i < tamano && !encontar ; i++){
+
+                encontar = j == opciones[i];
+            }
+
+            if(!encontar){
+                opciones.push_back(j);
+            }
+
+        }while(encontar);
 
         switch(basepal){ //return de la función opciones(facil, medio, dificil)
 
             case 1: //caso facil
+                stop_sample(perdi);
+                stop_sample(ganar);
+                play_sample(facil,200,150,1000,1);
                 temporal = imagenesFacil[j].getTexto();
                 draw_sprite(buffer, fondo_niveles, 0, 0);
                 masked_blit(load_bitmap(imagenesFacil[j].getUrl().c_str() , NULL), buffer, 0, 0, 205, 100, 260, 194);
             break;
             case 2://caso medio
+                stop_sample(perdi);
+                stop_sample(ganar);
+                play_sample(medio,200,150,1000,1);
                 temporal = imagenesNormal[j].getTexto();
                 draw_sprite(buffer, fondo_niveles, 0, 0);
                 masked_blit(load_bitmap(imagenesNormal[j].getUrl().c_str() , NULL), buffer, 0, 0, 205, 100, 260, 194);
             break;
             case 3://caso dificil
+                stop_sample(perdi);
+                stop_sample(ganar);
+                play_sample(dificil,200,150,1000,1);
                 temporal = imagenesDificil[j].getTexto();
                 draw_sprite(buffer, fondo_niveles, 0, 0);
                 masked_blit(load_bitmap(imagenesDificil[j].getUrl().c_str() , NULL), buffer, 0, 0, 205, 100, 260, 194);
@@ -299,12 +348,19 @@ void jugar(int basepal){
             }
 
             if(palgen == temporal){
-
                 BITMAP *ganaste = load_bitmap("img/Ganaste.bmp", NULL);
+                ganar = load_wav("music/Ganar.wav");
+                stop_sample(facil);
+                stop_sample(medio);
+                stop_sample(dificil);
+                play_sample(ganar,200,150,1000,1);
                 draw_sprite(buffer, ganaste, 0, 0);
                 blit(buffer, screen, 0, 0, 0, 0, 640, 480);
 
-                respuesta = readkey();//se asigna a respuesta la letra digitada
+                do{ //validacion de respuesta
+                  respuesta = readkey(); //se asigna a respuesta la letra digitada
+                }while(respuesta != 'n' && respuesta != 's');
+
                 rest(50);
                 t = 1;
             }
@@ -315,16 +371,45 @@ void jugar(int basepal){
 
 
             if(vidas == 0){
-                BITMAP *ganaste = load_bitmap("img/Ganaste.bmp", NULL);
-                draw_sprite(buffer, ganaste, 0, 0);
+                BITMAP *perdiste = load_bitmap("img/Perdiste.bmp", NULL);
+                perdi = load_wav("music/Perder.wav");
+                stop_sample(facil);
+                stop_sample(medio);
+                stop_sample(dificil);
+                play_sample(perdi,200,150,1000,1);
+                draw_sprite(buffer, perdiste, 0, 0);
+
+                for(int i = 0; i < temporal.size(); i++){
+                    masked_blit(abecedario[tolower(temporal[i]) - 97], buffer, 0, 0, 25+i*60, 333, 60, 60);//carga las x de acuerdo al tamaño de la palabra
+                }
+
                 blit(buffer, screen, 0, 0, 0, 0, 640, 480);
-                respuesta = readkey();
+
+                do{ //validacion de respuesta
+                  respuesta = readkey(); //se asigna a respuesta la letra digitada
+                }while(respuesta != 'n' && respuesta != 's');
 
                 t = 1;
             }
         }
         blit(buffer,screen, 0,0,0,0,640,480);
     }
+
+    stop_sample(perdi);
+    stop_sample(ganar);
+}
+
+void creditos(){
+
+    stop_sample(inicial);
+    play_sample(inicial,200,150,1000,1);
+
+    while(!key[KEY_ESC]){
+        BITMAP *credit = load_bitmap("img/Creditos.bmp", NULL);
+        draw_sprite(buffer, credit, 0, 0);
+        blit(buffer, screen, 0, 0, 0, 0, 640, 480);
+    }
+
 }
 
 //Se carga la informacion de las imagenes
